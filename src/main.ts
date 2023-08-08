@@ -1,4 +1,5 @@
 import { DoublyLinkedMatrix } from './doublylinkedmatrix'
+import { renderBoard } from './draw'
 import { exactCover, toRows, visualizeSolution } from './exactcover'
 import { buildMatrix, toArray } from './matrix'
 import './style.css'
@@ -25,4 +26,4 @@ const dllMatrix = new DoublyLinkedMatrix(arr, rowLen)
 const rows = exactCover(dllMatrix)
 console.log(toRows(rows, arr, rowLen))
 document.querySelector<HTMLDivElement>('#content')!.innerHTML =
-  visualizeSolution(matrix, rows)
+  renderBoard(challenge, 5) + '<br>' + visualizeSolution(matrix, rows)
