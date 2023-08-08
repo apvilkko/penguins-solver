@@ -1,6 +1,6 @@
 import { DoublyLinkedMatrix } from './doublylinkedmatrix'
 import { exactCover, visualizeSolution } from './exactcover'
-import { buildMatrix, toArray } from './matrix'
+import { buildMatrix, toArray, visualizeMatrix } from './matrix'
 import './style.css'
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `

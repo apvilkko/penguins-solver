@@ -56,6 +56,7 @@ export class DoublyLinkedMatrix {
     for (let i = 0; i < width; ++i) {
       node = node.R!
       column = node
+      let amount = 0
       for (let j = 0; j < height; ++j) {
         const value = board[j * width + i]
         if (value > 0) {
@@ -63,11 +64,13 @@ export class DoublyLinkedMatrix {
           cell.C = column
           node.appendDown(cell)
           node = cell
+          amount++
         }
       }
       // last cell wraps around to column object
       node.appendDown(column)
       node = column
+      column.S = amount
     }
 
     // Add horizontal links
@@ -108,15 +111,5 @@ export class DoublyLinkedMatrix {
     }
     console.log('get returns undefined', i, j)
     return undefined
-  }
-
-  getS = (columnObject: DataObject): number => {
-    let node = columnObject
-    let amount = 0
-    while (node.D !== columnObject) {
-      node = node.D!
-      amount++
-    }
-    return amount
   }
 }

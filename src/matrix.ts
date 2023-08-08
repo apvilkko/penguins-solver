@@ -1,5 +1,6 @@
 import { BoardGraph, DFS } from './dfs'
 import { BOARD_DIM, VARIANTS } from './pentominoes'
+import { rotate } from './rotation'
 import type { Matrix, MatrixCell, MatrixRow, PengPentomino } from './types'
 
 class InvalidPlacementError extends Error {}
@@ -7,11 +8,14 @@ class InvalidPlacementError extends Error {}
 export const visualizeMatrix = (matrix: Matrix) => {
   const matrixes = []
   for (let i = 0; i < matrix.length; ++i) {
+    const pIndex = matrix[i].slice(0, 5).indexOf(1)
+    const pentomino = VARIANTS.map((x) => x[0])[pIndex]
+
     const out = []
     for (let y = 0; y < BOARD_DIM; y++) {
       for (let x = 0; x < BOARD_DIM; x++) {
         const v = matrix[i][VARIANTS.length + (y * BOARD_DIM + x)]
-        out.push(v === 2 ? 'P' : v === 1 ? 'X' : '-')
+        out.push(v === 2 ? 'P' : v === 1 ? pentomino : '-')
       }
       out.push('\n')
     }
@@ -124,23 +128,25 @@ export const buildMatrix = (): Matrix => {
       .forEach((p) => {
         for (let j = 0; j < BOARD_DIM; ++j) {
           for (let i = 0; i < BOARD_DIM; ++i) {
-            const board: MatrixRow = Array.from({
-              length: BOARD_DIM * BOARD_DIM,
-            }).map(() => 0)
+            for (let r = 0; r < 4; ++r) {
+              const board: MatrixRow = Array.from({
+                length: BOARD_DIM * BOARD_DIM,
+              }).map(() => 0)
 
-            /*if (i < 2 || j > 0) {
-              continue
-            }*/
+              /*if (i < 2 || j > 0) {
+                continue
+              }*/
 
-            try {
-              placePiece(p, board, i, j)
-            } catch (InvalidPlacementError) {
-              continue
+              try {
+                placePiece(rotate(p, r), board, i, j)
+              } catch (InvalidPlacementError) {
+                continue
+              }
+              const pRow: MatrixRow = Array.from({
+                length: VARIANTS.length,
+              }).map((_, ii) => (ii === pentominoIndex ? 1 : 0))
+              matrix.push([...pRow, ...board])
             }
-            const pRow: MatrixRow = Array.from({ length: VARIANTS.length }).map(
-              (_, ii) => (ii === pentominoIndex ? 1 : 0)
-            )
-            matrix.push([...pRow, ...board])
           }
         }
       })
