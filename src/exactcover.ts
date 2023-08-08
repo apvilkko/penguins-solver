@@ -30,8 +30,8 @@ export const visualizeSolution = (a: Matrix, solution: number[]) => {
 let ops = 0
 
 export const cover = (x: DataObject) => {
-  ops++
-  if (ops % 10000 === 0) console.log(ops)
+  /*ops++
+  if (ops % 10000 === 0) console.log(ops)*/
   const c = x.C!
   c.R!.L = c.L
   c.L!.R = c.R
@@ -49,8 +49,8 @@ export const cover = (x: DataObject) => {
 }
 
 export const uncover = (x: DataObject) => {
-  ops++
-  if (ops % 10000 === 0) console.log(ops)
+  /*ops++
+  if (ops % 10000 === 0) console.log(ops)*/
   const c = x.C!
   let i = c
   while (i.U !== c) {
@@ -136,3 +136,6 @@ export const exactCover = (m: DoublyLinkedMatrix): number[] => {
     return rows
   }
 }
+
+export const toRows = (solution: number[], arr: number[], rowLen: number) =>
+  solution.map((r) => arr.slice(r * rowLen, (r + 1) * rowLen))

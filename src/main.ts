@@ -1,7 +1,8 @@
 import { DoublyLinkedMatrix } from './doublylinkedmatrix'
-import { exactCover, visualizeSolution } from './exactcover'
-import { buildMatrix, toArray, visualizeMatrix } from './matrix'
+import { exactCover, toRows, visualizeSolution } from './exactcover'
+import { buildMatrix, toArray } from './matrix'
 import './style.css'
+import { MatrixCell } from './types'
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
@@ -9,14 +10,19 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
     <div id="content"></div>
   </div>
 `
-
-const matrix = buildMatrix()
+// prettier-ignore
+const challenge = [
+  0, 0, 2, 2, 0,
+  0, 2, 0, 0, 0,
+  0, 2, 0, 0, 0,
+  0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0,
+]
+const matrix = buildMatrix(challenge as MatrixCell[])
 const arr = toArray(matrix)
 const rowLen = matrix[0].length
 const dllMatrix = new DoublyLinkedMatrix(arr, rowLen)
 const rows = exactCover(dllMatrix)
-rows.forEach((r) => {
-  console.log(arr.slice(r * rowLen, (r + 1) * rowLen))
-})
+console.log(toRows(rows, arr, rowLen))
 document.querySelector<HTMLDivElement>('#content')!.innerHTML =
   visualizeSolution(matrix, rows)

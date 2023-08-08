@@ -31,14 +31,24 @@ type Placement = Array<[number, MatrixCell]>
  * @returns true if placement results in sections of board which do not fit
  * further pentominoes
  */
-const isInvalidPlacement = (pl: Placement): boolean => {
+const isInvalidPlacement = (
+  pl: Placement,
+  challenge?: MatrixCell[]
+): boolean => {
   const board: MatrixRow = Array.from({
     length: BOARD_DIM * BOARD_DIM,
   }).map(() => 0)
 
-  pl.forEach((p) => {
-    board[p[0]] = p[1]
-  })
+  for (let pp = 0; pp < pl.length; ++pp) {
+    const i = pl[pp][0]
+    const v = pl[pp][1]
+
+    if (challenge && challenge[i] === 2 && v !== 2) {
+      return true
+    }
+
+    board[i] = v
+  }
 
   const dfs = new DFS()
   for (let i = 0; i < BOARD_DIM * BOARD_DIM; ++i) {
@@ -59,12 +69,14 @@ const isInvalidPlacement = (pl: Placement): boolean => {
  * @param board The game board
  * @param i Board x coordinate
  * @param j Board y coordinate
+ * @param challenge Possible challenge restraint
  */
 const placePiece = (
   p: PengPentomino,
   board: MatrixRow,
   i: number,
-  j: number
+  j: number,
+  challenge?: MatrixCell[]
 ): void => {
   // Sanity check with dimensions
   const width = p[0].length
@@ -85,7 +97,7 @@ const placePiece = (
     }
   }
 
-  if (isInvalidPlacement(placement)) {
+  if (isInvalidPlacement(placement, challenge)) {
     throw new InvalidPlacementError()
   }
 
@@ -94,7 +106,7 @@ const placePiece = (
   })
 }
 
-export const buildMatrix = (): Matrix => {
+export const buildMatrix = (challenge?: Array<MatrixCell>): Matrix => {
   /* A row consists of 30 columns:
   - one for each pentomino (5)
   - one for each square in the board (5x5 = 25)
@@ -116,41 +128,30 @@ export const buildMatrix = (): Matrix => {
 
   const matrix: Matrix = []
   VARIANTS.forEach((v, pentominoIndex) => {
-    const pentominos = v[1]
+    const pentominos = v[1].map((x) => x.split('|') as PengPentomino)
+    pentominos.forEach((p) => {
+      for (let j = 0; j < BOARD_DIM; ++j) {
+        for (let i = 0; i < BOARD_DIM; ++i) {
+          for (let r = 0; r < 4; ++r) {
+            const board: MatrixRow = Array.from({
+              length: BOARD_DIM * BOARD_DIM,
+            }).map(() => 0)
 
-      //.filter((_, i) => i === 1)
-
-      .map((x) => x.split('|') as PengPentomino)
-    pentominos
-
-      //.filter(() => pentominoIndex === 0)
-
-      .forEach((p) => {
-        for (let j = 0; j < BOARD_DIM; ++j) {
-          for (let i = 0; i < BOARD_DIM; ++i) {
-            for (let r = 0; r < 4; ++r) {
-              const board: MatrixRow = Array.from({
-                length: BOARD_DIM * BOARD_DIM,
-              }).map(() => 0)
-
-              /*if (i < 2 || j > 0) {
-                continue
-              }*/
-
-              try {
-                placePiece(rotate(p, r), board, i, j)
-              } catch (InvalidPlacementError) {
-                continue
-              }
-              const pRow: MatrixRow = Array.from({
-                length: VARIANTS.length,
-              }).map((_, ii) => (ii === pentominoIndex ? 1 : 0))
-              matrix.push([...pRow, ...board])
+            try {
+              placePiece(rotate(p, r), board, i, j, challenge)
+            } catch (InvalidPlacementError) {
+              continue
             }
+            const pRow: MatrixRow = Array.from({
+              length: VARIANTS.length,
+            }).map((_, ii) => (ii === pentominoIndex ? 1 : 0))
+            matrix.push([...pRow, ...board])
           }
         }
-      })
+      }
+    })
   })
+  //console.log('Matrix rows:', matrix.length)
   return matrix
 }
 
