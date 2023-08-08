@@ -1,5 +1,6 @@
+import { DoublyLinkedMatrix } from './doublylinkedmatrix'
 import { exactCover, visualizeSolution } from './exactcover'
-import { buildMatrix } from './matrix'
+import { buildMatrix, toArray } from './matrix'
 import './style.css'
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
@@ -10,7 +11,12 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
 `
 
 const matrix = buildMatrix()
-const solution = exactCover(matrix)
-console.log(solution)
+const arr = toArray(matrix)
+const rowLen = matrix[0].length
+const dllMatrix = new DoublyLinkedMatrix(arr, rowLen)
+const rows = exactCover(dllMatrix)
+rows.forEach((r) => {
+  console.log(arr.slice(r * rowLen, (r + 1) * rowLen))
+})
 document.querySelector<HTMLDivElement>('#content')!.innerHTML =
-  visualizeSolution(matrix, solution)
+  visualizeSolution(matrix, rows)

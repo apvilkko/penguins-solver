@@ -147,3 +147,6 @@ export const buildMatrix = (): Matrix => {
   })
   return matrix
 }
+
+export const toArray = (m: Matrix): number[] =>
+  m.reduce((arr, curr) => arr.concat(curr), [])

@@ -1,3 +1,4 @@
+import { DataObject, DoublyLinkedMatrix } from './doublylinkedmatrix'
 import { BOARD_DIM, VARIANTS } from './pentominoes'
 import type { Matrix } from './types'
 
@@ -26,71 +27,96 @@ export const visualizeSolution = (a: Matrix, solution: number[]) => {
   return `<pre>${rows.join('\n')}</pre>`
 }
 
-const deleteRows = (a: Matrix, n: number[]): Matrix => {
-  return a.filter((_, i) => !n.includes(i))
-}
-
-const deleteCols = (a: Matrix, n: number[]): Matrix => {
-  return a.map((row) => row.filter((_, i) => !n.includes(i)))
-}
-
-class TerminationError extends Error {}
-
-export const exactCover = (a: Matrix): number[] => {
-  const solution: number[] = []
-  return exactCoverStep(a, solution)
-}
-
-const exactCoverStep = (a: Matrix, solution: number[]): number[] => {
-  console.log('exactCoverStep')
-  if (a.length === 0) {
-    return solution
+const cover = (x: DataObject) => {
+  const c = x.C!
+  console.log('=> cover', c.N)
+  c.R!.L = c.L
+  c.L!.R = c.R
+  let i = c
+  while (i.D !== c) {
+    i = i.D!
+    let j = i
+    while (j.R !== i) {
+      j = j.R!
+      j.D!.U = j.U
+      j.U!.D = j.D
+    }
   }
-  const columsSums = a[0].map((_, i) => ({
-    amount: a.filter((_, ri) => a[ri][i] > 0).length,
-    index: i,
-  }))
-  let min = { amount: 1000, index: -1 }
-  columsSums.forEach((v) => {
-    if (!min || v.amount < min.amount) {
-      min = v
-    }
-  })
+}
 
-  const sorted = columsSums.sort((a, b) => {
-    if (a.amount > b.amount) return 1
-    if (a.amount < b.amount) return -1
-    return 0
-  })
-  for (let s = 0; s < sorted.length; ++s) {
-    const c = sorted[s].index
-    const possibles = a
-      .map((x, i) => [x, i])
-      .filter((y) => a[y[1] as number][c] > 0)
-      .map((y) => y[1])
-    if (possibles.length === 0) {
-      return solution
+const uncover = (x: DataObject) => {
+  const c = x.C!
+  let i = c
+  while (i.U !== c) {
+    i = i.U!
+    let j = i
+    while (j.L !== i) {
+      j = j.L!
+      j.D!.U = j
+      j.U!.D = j
     }
-    const r = Math.floor(Math.random() * possibles.length)
-    solution.push(r)
-
-    const columnsToDelete = []
-    const rowsToDelete = []
-    for (let j = 0; j < a[r].length; ++j) {
-      if (a[r][j] > 0) {
-        columnsToDelete.push(j)
-        //a = deleteCol(a, j)
-        for (let i = 0; i < a.length; ++i) {
-          if (a[i][j] > 0) {
-            rowsToDelete.push(i)
-          }
-        }
-      }
-    }
-    let a1 = deleteRows(a, rowsToDelete)
-    a1 = deleteCols(a1, columnsToDelete)
-
-    exactCoverStep(a1, [...solution, r])
   }
-  return solution
+  c.R!.L = c
+  c.L!.R = c
+}
+
+class FinishedException extends Error {}
+
+const exactCoverLevel = (
+  m: DoublyLinkedMatrix,
+  level: number,
+  o: Array<DataObject | undefined>
+) => {
+  if (m.root.R === m.root) {
+    throw new FinishedException()
+  }
+  // Choose column c
+  let s = 1000
+  let c = m.root
+  let node = m.root
+  while (node.R !== m.root) {
+    node = node.R!
+    const value = m.getS(node)
+    if (value < s) {
+      c = node
+      s = value
+    }
+  }
+  console.log('chose', c.N)
+
+  cover(c)
+  let r = c
+  while (r.D !== c) {
+    r = r.D!
+    if (o.length <= level) {
+      o.push(undefined)
+    }
+    o[level] = r
+    let j = r
+    while (j.R !== r) {
+      j = j.R!
+      cover(j)
+    }
+    exactCoverLevel(m, level + 1, o)
+    r = o[level] as DataObject
+    c = r.C!
+    j = r
+    while (j.L !== r) {
+      j = j.L!
+      uncover(j)
+    }
+  }
+  uncover(c)
+}
+
+export const exactCover = (m: DoublyLinkedMatrix): number[] => {
+  const o: Array<DataObject | undefined> = []
+  try {
+    exactCoverLevel(m, 0, o)
+  } catch (FinishedException) {
+    console.log('finished')
+  } finally {
+    const rows = o.map((x) => Number(x!.N.split(',').pop()))
+    return rows
+  }
 }
