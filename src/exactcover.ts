@@ -1,37 +1,30 @@
 import { DataObject, DoublyLinkedMatrix } from './doublylinkedmatrix'
+import { renderBoard } from './draw'
 import { BOARD_DIM, VARIANTS } from './pentominoes'
 import type { Matrix } from './types'
 
+const MAX_ITERATIONS = 500 * 1000000
+
 export const visualizeSolution = (a: Matrix, solution: number[]) => {
-  const out: string[] = Array.from({ length: BOARD_DIM * BOARD_DIM }).map(
-    () => '-'
+  const out: number[] = Array.from({ length: BOARD_DIM * BOARD_DIM }).map(
+    () => 0
   )
   solution.forEach((n) => {
     const pIndex = a[n].slice(0, 5).indexOf(1)
-    const pentomino = VARIANTS.map((x) => x[0])[pIndex]
     a[n].forEach((v, i) => {
       if (i >= VARIANTS.length && (v === 2 || v === 1)) {
-        out[i - VARIANTS.length] = v === 2 ? 'P' : v === 1 ? pentomino : '*'
+        out[i - VARIANTS.length] = 100 + pIndex * 10 + v
       }
     })
   })
-  const rows = out.reduce((all: Array<string>, one: string, i) => {
-    const ch = Math.floor(i / BOARD_DIM)
-    if (!all[ch]) {
-      all.push('')
-    }
-    all[ch] = all[ch] + one
-    return all
-  }, [])
-  console.log('rows', rows)
-  return `<pre>${rows.join('\n')}</pre>`
+  return renderBoard(out, BOARD_DIM, 'solution')
 }
 
 let ops = 0
 
 export const cover = (x: DataObject) => {
-  /*ops++
-  if (ops % 10000 === 0) console.log(ops)*/
+  ops++
+  //if (ops % 10000 === 0) console.log(ops)
   const c = x.C!
   c.R!.L = c.L
   c.L!.R = c.R
@@ -49,8 +42,8 @@ export const cover = (x: DataObject) => {
 }
 
 export const uncover = (x: DataObject) => {
-  /*ops++
-  if (ops % 10000 === 0) console.log(ops)*/
+  ops++
+  //if (ops % 10000 === 0) console.log(ops)
   const c = x.C!
   let i = c
   while (i.U !== c) {
@@ -68,6 +61,7 @@ export const uncover = (x: DataObject) => {
 }
 
 class FinishedException extends Error {}
+class UnsolvableException extends Error {}
 
 const exactCoverLevel = (
   m: DoublyLinkedMatrix,
@@ -75,10 +69,14 @@ const exactCoverLevel = (
   o: Array<DataObject | undefined>
 ) => {
   //console.log('exact cover level', level)
+  if (ops > MAX_ITERATIONS) {
+    throw new UnsolvableException()
+  }
   if (m.root.R === m.root) {
     throw new FinishedException()
   }
-  // Choose column c
+
+  // Choose column c by sorting columns by S and taking smallest first
   const amounts: Array<[number, DataObject]> = []
   let node = m.root
   while (node.R !== m.root) {
@@ -91,6 +89,7 @@ const exactCoverLevel = (
     if (a[0] < b[0]) return -1
     return 0
   })
+
   for (let s = 0; s < sorted.length; ++s) {
     let c = sorted[s][1]
     cover(c)
@@ -106,6 +105,7 @@ const exactCoverLevel = (
         j = j.R!
         cover(j)
       }
+      // Recursively call next level
       exactCoverLevel(m, level + 1, o)
       r = o[level] as DataObject
       c = r.C!
@@ -119,21 +119,25 @@ const exactCoverLevel = (
   }
 }
 
-export const exactCover = (m: DoublyLinkedMatrix): number[] => {
+export const exactCover = (m: DoublyLinkedMatrix): [boolean, number[]] => {
+  ops = 0
   const o: Array<DataObject | undefined> = []
   let success = false
   try {
     exactCoverLevel(m, 0, o)
-  } catch (FinishedException) {
-    success = true
+  } catch (e) {
+    if (e instanceof FinishedException) {
+      success = true
+    }
   } finally {
+    console.log('Operations', ops)
     if (success) {
       console.log('Finished')
     } else {
       console.log('Did not finish')
     }
     const rows = o.map((x) => Number(x!.N.split(',').pop()))
-    return rows
+    return [success, rows]
   }
 }
 

@@ -28,8 +28,8 @@ export const visualizeMatrix = (matrix: Matrix) => {
 type Placement = Array<[number, MatrixCell]>
 
 /**
- * @returns true if placement results in sections of board which do not fit
- * further pentominoes
+ * @returns true if placement is invalid (e.g. outside of board) or results in
+ * sections of board which do not fit further pentominoes
  */
 const isInvalidPlacement = (
   pl: Placement,
@@ -50,6 +50,8 @@ const isInvalidPlacement = (
     board[i] = v
   }
 
+  // Use DFS to search for consecutive empty spaces (does this placement leave
+  // enough room for another piece?)
   const dfs = new DFS()
   for (let i = 0; i < BOARD_DIM * BOARD_DIM; ++i) {
     if (board[i] === 0) {
@@ -124,6 +126,9 @@ export const buildMatrix = (challenge?: Array<MatrixCell>): Matrix => {
   pxx--
   -----
   -----
+  
+  More optimizations are possible when considering impossible piece placements
+  but they are left out, since the algorithm performs fast enough as such.
   */
 
   const matrix: Matrix = []

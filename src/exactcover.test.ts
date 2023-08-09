@@ -1,5 +1,5 @@
 import { DoublyLinkedMatrix } from './doublylinkedmatrix'
-import { exactCover, toRows } from './exactcover'
+import { exactCover } from './exactcover'
 import { buildMatrix, toArray } from './matrix'
 import type { MatrixCell } from './types'
 
@@ -16,6 +16,7 @@ describe('exact cover', () => {
     const matrix = buildMatrix(challenge)
     const arr = toArray(matrix)
     const result = exactCover(new DoublyLinkedMatrix(arr, matrix[0].length))
-    expect(result.length).toBe(5)
+    expect(result[0]).toBe(true)
+    expect(result[1].length).toBe(5)
   })
 })

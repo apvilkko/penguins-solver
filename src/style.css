@@ -40,10 +40,18 @@ h1 {
   padding: 0 2rem;
 }
 
-table.board {
-  border-collapse: collapse;
+button {
+  margin-bottom: 1rem;
+}
+
+table {
   margin: 0;
   padding: 0;
+  margin-bottom: 1rem;
+}
+
+table.board {
+  border-collapse: collapse;
 }
 
 .board tr {
@@ -52,11 +60,13 @@ table.board {
 }
 
 .board td {
-  width: 3em;
-  height: 3em;
+  width: 3rem;
+  height: 3rem;
   text-align: center;
+  font-weight: 800;
   margin: 0;
   border: 1px solid #777;
+  font-size: 1.8rem;
 }
 
 button {
@@ -76,4 +86,14 @@ button:hover {
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
+}
+
+.variant-0 {background-color: red;}
+.variant-1 {background-color: black;}
+.variant-2 {background-color: darkmagenta;}
+.variant-3 {background-color: green;}
+.variant-4 {background-color: darkblue;}
+
+footer {
+  margin-top: 3rem;
 }
